@@ -1,0 +1,50 @@
+#!/bin/bash
+
+if [[ -z "${1}" ]]; then
+  echo 'Please specify python version (python2 or python3)'
+  exit 1
+fi
+
+set -e
+PYTHON=$1
+PROJECT=$(basename $PWD)
+
+if [[ ! ${PYTHON} =~ ^python[23]$ ]]; then
+  echo 'Invalid python version! python2 or python3 expected'
+  exit 1
+fi
+
+if ! grep -q '^\.virtualenv$' .gitignore; then
+  echo '.virtualenv' >> .gitignore
+fi
+
+mkdir -p .virtualenv
+if [[ ! -d .virtualenv/${PROJECT} ]]; then
+  virtualenv -p ${PYTHON} .virtualenv/${PROJECT}
+  if [[ -f requirements.txt ]]; then
+    source .virtualenv/${PROJECT}/bin/activate
+    for requirement in requirements*.txt; do
+      pip install -r ${requirement}
+    done
+  fi
+fi
+
+if ! grep -q '^\.env$' .gitignore; then
+  echo '.env' >> .gitignore
+fi
+
+if [[ ! -L .env ]]; then
+  ln -s .virtualenv/${PROJECT}/bin/activate .env
+  hash=($(shasum $(pwd -P)/.env))
+  if ! grep -q ${hash[0]} .gitignore; then
+    echo "${hash[1]}:${hash[0]}" >> ~/.autoenv_authorized
+  fi
+fi
+
+if [[ ! -d .git ]]; then
+  git init
+  git add .gitignore
+  git commit -m 'initial commit' .gitignore
+fi
+
+echo 'Use "cd ." to activate the virtualenv'
