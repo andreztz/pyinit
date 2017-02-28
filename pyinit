@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # pyinit
 #
@@ -15,7 +15,9 @@ function help {
   cat << EOF
 
 USAGE: pyinit [OPTION]... python2|python3
+  -d        enable debugging
   -h        show this help text and exit
+  -r        remove virtualenv
   -v        show version and exit
 EOF
   exit 0
@@ -33,7 +35,7 @@ function python_virtualenv {
 
   # Create virtualenv and install requirements
   if [[ ! -d .virtualenv/${_projectdir} ]]; then
-    echo -e '\e[92mCreating: virtualenv\e[39m'
+    echo -e '\e[92mcreating virtualenv\e[39m'
     virtualenv -p ${_python} .virtualenv/${_projectdir}
     if [[ -f requirements.txt ]]; then
       source .virtualenv/${_projectdir}/bin/activate
@@ -45,6 +47,29 @@ function python_virtualenv {
 }
 
 
+function remove_virtualenv {
+  local _projectdir=$1
+  local _envfile=${AUTOENV_ENV_FILENAME:-.env}
+  local _authfile=${AUTOENV_AUTH_FILE:-~/.autoenv_authorized}
+  echo -e '\e[92mremoving virtualenv\e[39m'
+  if [[ -L .env ]]; then
+    hash=($(shasum $(pwd -P)/${_envfile}))
+    rm -f ${_envfile}
+    if grep -q ${hash[0]} ${_authfile}; then
+      cp ${_authfile} ${_authfile}.old
+      set +e
+      grep -v ${hash[0]} ${_authfile}.old > ${_authfile}
+      set -e
+    fi
+  fi
+
+  if [[ -d .virtualenv/${_projectdir} ]]; then
+    rm -rf .virtualenv/${_projectdir}
+    rm -d .virtualenv
+  fi
+}
+
+
 function python_autoenv {
   local _projectdir=$1
   local _envfile=${AUTOENV_ENV_FILENAME:-.env}
@@ -52,11 +77,10 @@ function python_autoenv {
 
   # Add autoenv symlink
   if [[ ! -L ${_envfile} ]]; then
-    echo -e '\e[92mEnable: autoenv\e[39m'
+    echo -e '\e[92menable autoenv\e[39m'
     touch ${_authfile}
     ln -s .virtualenv/${_projectdir}/bin/activate ${_envfile}
     hash=($(shasum $(pwd -P)/${_envfile}))
-    echo $hash
     if ! grep -q ${hash[0]} ${_authfile}; then
       echo "${hash[1]}:${hash[0]}" >> ${_authfile}
     fi
@@ -82,7 +106,7 @@ function gitinit {
   fi
 
   if [[ ! -d .git ]]; then
-    echo -e '\e[92mInitializing: git project\e[39m'
+    echo -e '\e[92minitializing git project\e[39m'
     git init
     git add .gitignore
     git commit -m 'initial commit' .gitignore
@@ -91,44 +115,51 @@ function gitinit {
 
 
 # Main
-while getopts ":hv" OPTION; do
+PYTHON=${@: -1}
+PROJECT=$(basename $PWD)
+_remove=false
+
+while getopts ":hvrd" OPTION; do
     case $OPTION in
         h)  help
             exit 1;;
         v)  echo 'pyinit 0.1.0'
             exit 0;;
+        r)  _remove=true;;
+        d)  set -x;;
         \?) exit 1;;
     esac
 done
 
-if [[ -z "${1}" ]]; then
+echo -e '\e[96mpyinit:\e[39m'
+if [[ "${_remove}" == "true" ]]; then
+  remove_virtualenv ${PROJECT}
+  exit 0
+fi
+
+if [[ -z "${PYTHON}" ]]; then
   help
   exit 1
 fi
 
-if [[ ! ${1} =~ ^python[23]$ ]]; then
-  echo -e "\e[91mInvalid python version! use python2 or python3\e[39m"
-  help
+if [[ ! ${PYTHON} =~ ^python[23]$ ]]; then
+  echo -e "\e[91minvalid python version! use python2 or python3\e[39m"
   exit 1
 fi
 
 if ! which virtualenv >/dev/null; then
-  echo -e '\e[91mPlease install "virtualenv" before using this script!\e[39m'
+  echo -e '\e[91mplease install "virtualenv" before using this script!\e[39m'
   help
   exit 1
 fi
 
 if ! which shasum >/dev/null; then
-  echo -e '\e[91mPlease install "shasum" before using this script!\e[39m'
+  echo -e '\e[91mplease install "shasum" before using this script!\e[39m'
   help
   exit 1
 fi
 
-set -e
-PYTHON=$1
-PROJECT=$(basename $PWD)
-
 python_virtualenv ${PYTHON} ${PROJECT}
 python_autoenv ${PROJECT}
 gitinit
-echo -e '\e[93mUse "cd ." to enable the new virtualenv\e[39m'
+echo -e '\e[93muse "cd ." to enable the new virtualenv\e[39m'
