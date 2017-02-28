@@ -8,8 +8,8 @@
 # Please install git, virtualenv, and autoenv, activate autoenv before using this script!
 # see https://pypi.python.org/pypi/autoenv for instruction on how to install and activate autoenv
 #
-# Created by: Johan Bakker
-
+# Check my github: https://github.com/provonet/pyinit for documentation and new releases
+# Johan Bakker
 
 function help {
   cat << EOF
