@@ -18,6 +18,7 @@ USAGE: pyinit [OPTION]... python2|python3
   -d        enable debugging
   -h        show this help text and exit
   -r        remove virtualenv
+  -u        upgrade virtualenv
   -v        show version and exit
 EOF
   exit 0
@@ -70,6 +71,16 @@ function remove_virtualenv {
 }
 
 
+function update_virtualenv {
+  local _projectdir=$1
+  echo -e '\e[92mupdating virtualenv\e[39m'
+  source .virtualenv/${_projectdir}/bin/activate
+  for _requirement in requirements*.txt; do
+    pip install -U -r ${_requirement}
+  done
+}
+
+
 function python_autoenv {
   local _projectdir=$1
   local _envfile=${AUTOENV_ENV_FILENAME:-.env}
@@ -118,8 +129,9 @@ function gitinit {
 PYTHON=${@: -1}
 PROJECT=$(basename $PWD)
 _remove=false
+_update=false
 
-while getopts ":hvrd" OPTION; do
+while getopts ":hvrdu" OPTION; do
     case $OPTION in
         h)  help
             exit 1;;
@@ -127,6 +139,7 @@ while getopts ":hvrd" OPTION; do
             exit 0;;
         r)  _remove=true;;
         d)  set -x;;
+        u)  _update=true;;
         \?) exit 1;;
     esac
 done
@@ -134,6 +147,11 @@ done
 echo -e '\e[96mpyinit:\e[39m'
 if [[ "${_remove}" == "true" ]]; then
   remove_virtualenv ${PROJECT}
+  exit 0
+fi
+
+if [[ "${_update}" == "true" ]]; then
+  update_virtualenv ${PROJECT}
   exit 0
 fi
 
