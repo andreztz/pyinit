@@ -17,6 +17,7 @@ function help {
 USAGE: pyinit [OPTION]... python2|python3
   -d        enable debugging
   -h        show this help text and exit
+  -n        skip git init
   -r        remove virtualenv
   -u        upgrade virtualenv
   -v        show version and exit
@@ -130,13 +131,15 @@ PYTHON=${@: -1}
 PROJECT=$(basename $PWD)
 _remove=false
 _update=false
+_skipgit=false
 
-while getopts ":hvrdu" OPTION; do
+while getopts ":hvnrdu" OPTION; do
     case $OPTION in
         h)  help
             exit 1;;
         v)  echo 'pyinit 0.1.0'
             exit 0;;
+        n)  _skipgit=true;;
         r)  _remove=true;;
         d)  set -x;;
         u)  _update=true;;
@@ -179,5 +182,11 @@ fi
 
 python_virtualenv ${PYTHON} ${PROJECT}
 python_autoenv ${PROJECT}
-gitinit
+
+if [[ "${_skipgit}" == "false" ]]; then
+  gitinit
+else
+  echo -e '\e[32mskipping git initialization\e[39m'
+fi
+
 echo -e '\e[93muse "cd ." to enable the new virtualenv\e[39m'
