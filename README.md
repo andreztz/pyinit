@@ -7,10 +7,9 @@ If you switch to python from ruby and have worked with the ruby version manager 
 Adding autoenv to automaticly enable virtualenvs is a huge step to make virtualenvs better.
 
 Pyinit is a simple bash script to glue git, autoenv and virtualenv together.
+
 1. It will install a .virtualenv folder into you're project folder and add it to .gitignore.
-
 2. Initialize a new git project.
-
 3. Install the project requirements mentioned in the requirement*.txt files. and configure autoenv so that the virtualenv will be activated if you enter the project directory.
 
 To create a python3 based virtualenv:
