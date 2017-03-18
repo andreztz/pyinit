@@ -1,3 +1,4 @@
+
 pyinit
 =========
 Make working with python virtualenv a breeze
@@ -36,6 +37,8 @@ use "cd ." to enable the new virtualenv
 [jb@vuurflits64 new-python3-project]$ cd .
 (new-python3-project) [jb@vuurflits64 new-python3-project]$
 ```
+For convinience you can also add the python version in the requirements.txt file, simply start you're the file with either # pyinit: python2 or # pyinit: python3 (added in version 0.1.2)
+
 This script requires git, virtualenv autoenv, autoenv needs to be enabled in you're .bashrc or .zshrc file before using pyinit.
 
 See https://pypi.python.org/pypi/autoenv/0.2.0 on how to install/enable autoenv

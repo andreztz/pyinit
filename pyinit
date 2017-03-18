@@ -14,7 +14,7 @@
 function help {
   cat << EOF
 
-USAGE: pyinit [OPTION]... python2|python3
+USAGE: pyinit [OPTION]... [python2][python3]
   -a        skip autoenv init
   -d        enable debugging
   -h        show this help text and exit
@@ -139,7 +139,7 @@ while getopts ":hvgardu" OPTION; do
     case $OPTION in
         h)  help
             exit 1;;
-        v)  echo 'pyinit 0.1.0'
+        v)  echo 'pyinit 0.1.2'
             exit 0;;
         g)  _skipgit=true;;
         a)  _skipautoenv=true;;
@@ -161,14 +161,23 @@ if [[ "${_update}" == "true" ]]; then
   exit 0
 fi
 
-if [[ -z "${PYTHON}" ]]; then
-  help
-  exit 1
-fi
-
 if [[ ! ${PYTHON} =~ ^python[23]$ ]]; then
-  echo -e "\e[91minvalid python version! use python2 or python3\e[39m"
-  exit 1
+
+  if [[ -f requirements.txt ]]; then
+    if grep -E '^#\s*pyinit:\s*python2' requirements.txt; then
+      PYTHON=python2
+    elif grep -E '^#\s*pyinit:\s*python3' requirements.txt; then
+      PYTHON=python3
+    fi
+  fi
+
+  if [[ ! ${PYTHON} =~ ^python ]]; then
+    echo -e "\e[91mno python version specified! use command line parameter or set python version in requirements.txt\e[39m"
+    exit 1
+  elif [[ ! ${PYTHON} =~ ^python[23]$ ]]; then
+    echo -e "\e[91minvalid python version! use python2 or python3\e[39m"
+    exit 1
+  fi
 fi
 
 if ! which virtualenv >/dev/null; then
