@@ -113,9 +113,19 @@ function gitinit {
     echo ${_envfile} >> .gitignore
   fi
 
-  # Add .vurtualenv directory to .gitignore
+  # Add .virtualenv directory to .gitignore
   if ! grep -q '^\.virtualenv$' .gitignore; then
     echo '.virtualenv' >> .gitignore
+  fi
+
+  # Add .idea (pycharm) directory to .gitignore
+  if ! grep -q '^\.idea$' .gitignore; then
+    echo '.idea' >> .gitignore
+  fi
+
+  # Add *.pyc files to .gitignore
+  if ! grep -q '^\*\.pyc' .gitignore; then
+    echo '*.pyc' >> .gitignore
   fi
 
   if [[ ! -d .git ]]; then
@@ -164,9 +174,9 @@ fi
 if [[ ! ${PYTHON} =~ ^python[23]$ ]]; then
 
   if [[ -f requirements.txt ]]; then
-    if grep -E '^#\s*pyinit:\s*python2' requirements.txt; then
+    if grep -qE '^#\s*pyinit:\s*python2' requirements.txt; then
       PYTHON=python2
-    elif grep -E '^#\s*pyinit:\s*python3' requirements.txt; then
+    elif grep -qE '^#\s*pyinit:\s*python3' requirements.txt; then
       PYTHON=python3
     fi
   fi
