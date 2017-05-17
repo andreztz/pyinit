@@ -11,6 +11,9 @@
 # Check my github: https://github.com/provonet/pyinit for documentation and new releases
 # Johan Bakker
 
+# Set CLICOLOR if you want Ansi Colors in iTerm2
+export CLICOLOR=1
+
 function help {
   cat << EOF
 
@@ -38,7 +41,7 @@ function python_virtualenv {
 
   # Create virtualenv and install requirements
   if [[ ! -d .virtualenv/${_projectdir} ]]; then
-    echo -e '\e[92mcreating virtualenv\e[39m'
+    printf '\e[92mcreating virtualenv\e[39m\n'
     virtualenv -p ${_python} .virtualenv/${_projectdir}
     if [[ -f requirements.txt ]]; then
       source .virtualenv/${_projectdir}/bin/activate
@@ -54,7 +57,7 @@ function remove_virtualenv {
   local _projectdir=$1
   local _envfile=${AUTOENV_ENV_FILENAME:-.env}
   local _authfile=${AUTOENV_AUTH_FILE:-~/.autoenv_authorized}
-  echo -e '\e[92mremoving virtualenv\e[39m'
+  printf '\e[92mremoving virtualenv\e[39m\n'
   if [[ -L .env ]]; then
     hash=($(shasum $(pwd -P)/${_envfile}))
     rm -f ${_envfile}
@@ -75,7 +78,7 @@ function remove_virtualenv {
 
 function update_virtualenv {
   local _projectdir=$1
-  echo -e '\e[92mupdating virtualenv\e[39m'
+  printf '\e[92mupdating virtualenv\e[39m\n'
   source .virtualenv/${_projectdir}/bin/activate
   for _requirement in requirements*.txt; do
     pip install -U -r ${_requirement}
@@ -90,7 +93,7 @@ function python_autoenv {
 
   # Add autoenv symlink
   if [[ ! -L ${_envfile} ]]; then
-    echo -e '\e[92menable autoenv\e[39m'
+    printf '\e[92menable autoenv\e[39m\n'
     touch ${_authfile}
     ln -s .virtualenv/${_projectdir}/bin/activate ${_envfile}
     hash=($(shasum $(pwd -P)/${_envfile}))
@@ -129,7 +132,7 @@ function gitinit {
   fi
 
   if [[ ! -d .git ]]; then
-    echo -e '\e[92minitializing git project\e[39m'
+    printf '\e[92minitializing git project\e[39m\n'
     git init
     git add .gitignore
     git commit -m 'initial commit' .gitignore
@@ -160,7 +163,7 @@ while getopts ":hvgardu" OPTION; do
     esac
 done
 
-echo -e '\e[96mpyinit:\e[39m'
+printf '\e[96mpyinit:\e[39m\n'
 if [[ "${_remove}" == "true" ]]; then
   remove_virtualenv ${PROJECT}
   exit 0
@@ -182,16 +185,19 @@ if [[ ! ${PYTHON} =~ ^python[23]$ ]]; then
   fi
 
   if [[ ! ${PYTHON} =~ ^python ]]; then
-    echo -e "\e[91mno python version specified! use command line parameter or set python version in requirements.txt\e[39m"
+    printf "\e[91mno python version specified! use command line parameter or set python version in requirements.txt\e[39m\n"
     exit 1
   elif [[ ! ${PYTHON} =~ ^python[23]$ ]]; then
-    echo -e "\e[91minvalid python version! use python2 or python3\e[39m"
+    printf "\e[91minvalid python version! use python2 or python3\e[39m\n"
     exit 1
   fi
 fi
 
+# find latest minor of python
+PYTHON=$(ls -1 /usr/*bin/${PYTHON}* | grep "${PYTHON}.*[0-9]$" | sort -nr | head -n1)
+
 if ! which virtualenv >/dev/null; then
-  echo -e '\e[91mplease install "virtualenv" before using this script!\e[39m'
+  printf '\e[91mplease install "virtualenv" before using this script!\e[39m\n'
   help
   exit 1
 fi
@@ -200,24 +206,24 @@ python_virtualenv ${PYTHON} ${PROJECT}
 
 if [[ "${_skipautoenv}" == "false" ]]; then
   if ! which shasum >/dev/null; then
-    echo -e '\e[91mplease install "shasum" before using this script!\e[39m'
+    printf '\e[91mplease install "shasum" before using this script!\e[39m\n'
     help
     exit 1
   fi
 
   python_autoenv ${PROJECT}
 else
-  echo -e '\e[32mskipping autoenv initialization\e[39m'
+  printf '\e[32mskipping autoenv initialization\e[39m\n'
 fi
 
 if [[ "${_skipgit}" == "false" ]]; then
   gitinit
 else
-  echo -e '\e[32mskipping git initialization\e[39m'
+  printf '\e[32mskipping git initialization\e[39m\n'
 fi
 
 if [[ ${_skipautoenv} == "false" ]]; then
-  echo -e '\e[93muse "cd ." to enable the new virtualenv\e[39m'
+  printf '\e[93muse "cd ." to enable the new virtualenv\e[39m\n'
 else
-  echo -e "\e[93muse \"source .virtualenv/${PROJECT}/bin/activate\" to enable the new virtualenv\e[39m"
+  printf "\e[93muse \"source .virtualenv/${PROJECT}/bin/activate\" to enable the new virtualenv\e[39m\n"
 fi
