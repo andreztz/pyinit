@@ -29,6 +29,18 @@ EOF
   exit 0
 }
 
+function install_requirements {
+  if ls requirements*.txt > /dev/null 2>&1; then
+    source .virtualenv/${_projectdir}/bin/activate
+    for _requirement_file in requirements*.txt; do
+      # respect ordering in requirement file
+      for _requirement in $(cat ${_requirement_file}|grep -v '^#'); do
+        echo "installing: ${_requirement}"
+        pip install ${_requirement}
+      done
+    done
+  fi
+}
 
 function python_virtualenv {
   local _python=$1
@@ -43,12 +55,7 @@ function python_virtualenv {
   if [[ ! -d .virtualenv/${_projectdir} ]]; then
     printf '\e[92mcreating virtualenv\e[39m\n'
     virtualenv -p ${_python} .virtualenv/${_projectdir}
-    if [[ -f requirements.txt ]]; then
-      source .virtualenv/${_projectdir}/bin/activate
-      for _requirement in requirements*.txt; do
-        pip install -r ${_requirement}
-      done
-    fi
+    install_requirements
   fi
 }
 
@@ -80,11 +87,8 @@ function update_virtualenv {
   local _projectdir=$1
   printf '\e[92mupdating virtualenv\e[39m\n'
   source .virtualenv/${_projectdir}/bin/activate
-  for _requirement in requirements*.txt; do
-    pip install -U -r ${_requirement}
-  done
+  install_requirements
 }
-
 
 function python_autoenv {
   local _projectdir=$1
