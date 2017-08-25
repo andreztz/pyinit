@@ -17,7 +17,7 @@ export CLICOLOR=1
 function help {
   cat << EOF
 
-USAGE: pyinit [OPTION]... [python2][python3]
+USAGE: pyinit [OPTION]... [python2][python3][pypy][pypy3]
   -a        skip autoenv init
   -d        enable debugging
   -h        show this help text and exit
@@ -156,7 +156,7 @@ while getopts ":hvgardu" OPTION; do
     case $OPTION in
         h)  help
             exit 1;;
-        v)  echo 'pyinit 0.1.3'
+        v)  echo 'pyinit 0.2.0'
             exit 0;;
         g)  _skipgit=true;;
         a)  _skipautoenv=true;;
@@ -185,20 +185,24 @@ if [[ ! ${PYTHON} =~ ^python[23]$ ]]; then
       PYTHON=python2
     elif grep -qE '^#\s*pyinit:\s*python3' requirements.txt; then
       PYTHON=python3
+    elif grep -qE '^#\s*pyinit:\s*pypy' requirements.txt; then
+      PYTHON=pypy
+    elif grep -qE '^#\s*pyinit:\s*pypy3' requirements.txt; then
+      PYTHON=pypy3
     fi
   fi
 
-  if [[ ! ${PYTHON} =~ ^python ]]; then
+  if [[ ! ${PYTHON} =~ ^(python|pypy) ]]; then
     printf "\e[91mno python version specified! use command line parameter or set python version in requirements.txt\e[39m\n"
     exit 1
-  elif [[ ! ${PYTHON} =~ ^python[23]$ ]]; then
+  elif [[ ! ${PYTHON} =~ ^(python[23]|pypy3?)$ ]]; then
     printf "\e[91minvalid python version! use python2 or python3\e[39m\n"
     exit 1
   fi
 fi
 
-# find latest minor of python
-PYTHON=$(ls -1 /usr/*bin/${PYTHON}* | grep "${PYTHON}.*[0-9]$" | sort -nr | head -n1)
+# find path
+PYTHON=$(ls -1 /usr/*bin/${PYTHON}|sort -nr| head -n1)
 
 if ! which virtualenv >/dev/null; then
   printf '\e[91mplease install "virtualenv" before using this script!\e[39m\n'
