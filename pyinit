@@ -156,7 +156,7 @@ while getopts ":hvgardu" OPTION; do
     case $OPTION in
         h)  help
             exit 1;;
-        v)  echo 'pyinit 0.2.0'
+        v)  echo 'pyinit 0.2.1'
             exit 0;;
         g)  _skipgit=true;;
         a)  _skipautoenv=true;;
@@ -185,10 +185,10 @@ if [[ ! ${PYTHON} =~ ^python[23]$ ]]; then
       PYTHON=python2
     elif grep -qE '^#\s*pyinit:\s*python3' requirements.txt; then
       PYTHON=python3
-    elif grep -qE '^#\s*pyinit:\s*pypy' requirements.txt; then
-      PYTHON=pypy
     elif grep -qE '^#\s*pyinit:\s*pypy3' requirements.txt; then
       PYTHON=pypy3
+    elif grep -qE '^#\s*pyinit:\s*pypy' requirements.txt; then
+      PYTHON=pypy
     fi
   fi
 
