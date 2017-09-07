@@ -156,7 +156,7 @@ while getopts ":hvgardu" OPTION; do
     case $OPTION in
         h)  help
             exit 1;;
-        v)  echo 'pyinit 0.2.1'
+        v)  echo 'pyinit 0.2.2'
             exit 0;;
         g)  _skipgit=true;;
         a)  _skipautoenv=true;;
@@ -195,14 +195,14 @@ if [[ ! ${PYTHON} =~ ^python[23]$ ]]; then
   if [[ ! ${PYTHON} =~ ^(python|pypy) ]]; then
     printf "\e[91mno python version specified! use command line parameter or set python version in requirements.txt\e[39m\n"
     exit 1
-  elif [[ ! ${PYTHON} =~ ^(python[23]|pypy3?)$ ]]; then
-    printf "\e[91minvalid python version! use python2 or python3\e[39m\n"
+  elif [[ ! ${PYTHON} =~ ^(python|pypi)[23]?$ ]]; then
+    printf "\e[91minvalid python version! use python, python2 or python3\e[39m\n"
     exit 1
   fi
 fi
 
 # find path
-PYTHON=$(ls -1 /usr/*bin/${PYTHON}|sort -nr| head -n1)
+PYTHON=$(ls -1 $(which ${PYTHON})|sort -nr| head -n1)
 
 if ! which virtualenv >/dev/null; then
   printf '\e[91mplease install "virtualenv" before using this script!\e[39m\n'
