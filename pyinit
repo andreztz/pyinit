@@ -17,7 +17,7 @@ export CLICOLOR=1
 function help {
   cat << EOF
 
-USAGE: pyinit [OPTION]... [python2][python3][pypy][pypy3]
+USAGE: pyinit [OPTION]... [python][python2][python3][pypy][pypy3]
   -a        skip autoenv init
   -d        enable debugging
   -h        show this help text and exit
@@ -182,13 +182,15 @@ if [[ ! ${PYTHON} =~ ^python[23]$ ]]; then
 
   if [[ -f requirements.txt ]]; then
     if grep -qE '^#\s*pyinit:\s*python2' requirements.txt; then
-      PYTHON=python2
+      PYTHON=$(basename $(which -a python2 || which python))
     elif grep -qE '^#\s*pyinit:\s*python3' requirements.txt; then
-      PYTHON=python3
+      PYTHON=$(basename $(which -a python3 || which python))
     elif grep -qE '^#\s*pyinit:\s*pypy3' requirements.txt; then
       PYTHON=pypy3
     elif grep -qE '^#\s*pyinit:\s*pypy' requirements.txt; then
       PYTHON=pypy
+    elif grep -qE '^#\s*pyinit:\s*python' requirements.txt; then
+      PYTHON=python
     fi
   fi
 
