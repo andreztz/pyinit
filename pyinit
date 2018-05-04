@@ -93,12 +93,12 @@ function update_virtualenv {
 function python_autoenv {
   local _projectdir=$1
   local _envfile="${AUTOENV_ENV_FILENAME:-.env}"
-  local _authfile="${AUTOENV_AUTH_FILE:-~/.autoenv_authorized}"
+  local _authfile=${AUTOENV_AUTH_FILE:-~/.autoenv_authorized}
 
   # Add autoenv symlink
   if [[ ! -L ${_envfile} ]]; then
     printf '\e[92menable autoenv\e[39m\n'
-    touch "${_authfile}"
+    touch ${_authfile}
     ln -s ".virtualenv/${_projectdir}/bin/activate" "${_envfile}"
     hash=($(shasum "$(pwd -P)/${_envfile}"))
     if ! grep -q ${hash[0]} "${_authfile}"; then
