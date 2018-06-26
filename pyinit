@@ -127,8 +127,8 @@ function gitinit {
     echo "${_envfile}" >> .gitignore
   fi
 
-  # Add ${VENV} directory to .gitignore
-  if ! grep -q "^\${VENV}" .gitignore; then
+  # Add virtualenv directory to .gitignore
+  if ! grep -q "^${VENV}" .gitignore; then
     echo "${VENV}" >> .gitignore
   fi
 
