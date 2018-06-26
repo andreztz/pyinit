@@ -31,7 +31,7 @@ EOF
 
 function install_requirements {
   if ls requirements*.txt > /dev/null 2>&1; then
-    source ".virtualenv/${_projectdir}/bin/activate"
+    source "${VENV}/${_projectdir}/bin/activate"
     for _requirement_file in requirements*.txt; do
       # respect ordering in requirement file
       for _requirement in $(cat "${_requirement_file}"|grep -v '^#'); do
@@ -47,46 +47,54 @@ function python_virtualenv {
   local _projectdir=$2
   local _requirement=''
 
-  if [[ ! -d .virtualenv ]]; then
-    mkdir .virtualenv
+  if [[ ! -d ${VENV} ]]; then
+    mkdir ${VENV}
   fi
 
   # Create virtualenv and install requirements
-  if [[ ! -d ".virtualenv/${_projectdir}" ]]; then
+  if [[ ! -d "${VENV}/${_projectdir}" ]]; then
     printf '\e[92mcreating virtualenv\e[39m\n'
-    virtualenv -p ${_python} ".virtualenv/${_projectdir}"
+    virtualenv -p ${_python} "${VENV}/${_projectdir}"
     install_requirements
   fi
 }
 
+function _remove_virtualenv_dir {
+  local _projectdir=$1
 
-function remove_virtualenv {
+  if [[ -d "${VENV}/${_projectdir}" ]]; then
+    rm -rf "${VENV}/${_projectdir}"
+    rm -d ${VENV}
+  fi
+}
+
+function _remove_autoenv_dir {
   local _projectdir=$1
   local _envfile=${AUTOENV_ENV_FILENAME:-.env}
   local _authfile=${AUTOENV_AUTH_FILE:-~/.autoenv_authorized}
-  printf '\e[92mremoving virtualenv\e[39m\n'
   if [[ -L .env ]]; then
+    set +e
     hash=($(shasum "$(pwd -P)/${_envfile}"))
     rm -f "${_envfile}"
     if grep -q ${hash[0]} "${_authfile}"; then
       cp "${_authfile}" "${_authfile}.old"
-      set +e
       grep -v ${hash[0]} "${_authfile}.old" > "${_authfile}"
-      set -e
     fi
-  fi
-
-  if [[ -d ".virtualenv/${_projectdir}" ]]; then
-    rm -rf ".virtualenv/${_projectdir}"
-    rm -d .virtualenv
+    set -e
   fi
 }
 
+function remove_virtualenv {
+  local _projectdir=$1
+   printf '\e[92mremoving virtualenv\e[39m\n'
+  _remove_autoenv_dir $_projectdir
+  _remove_virtualenv_dir $_projectdir
+}
 
 function update_virtualenv {
   local _projectdir=$1
   printf '\e[92mupdating virtualenv\e[39m\n'
-  source ".virtualenv/${_projectdir}/bin/activate"
+  source "${VENV}/${_projectdir}/bin/activate"
   install_requirements
 }
 
@@ -99,14 +107,13 @@ function python_autoenv {
   if [[ ! -L ${_envfile} ]]; then
     printf '\e[92menable autoenv\e[39m\n'
     touch ${_authfile}
-    ln -s ".virtualenv/${_projectdir}/bin/activate" "${_envfile}"
+    ln -s "${VENV}/${_projectdir}/bin/activate" "${_envfile}"
     hash=($(shasum "$(pwd -P)/${_envfile}"))
     if ! grep -q ${hash[0]} "${_authfile}"; then
       echo "${hash[1]}:${hash[0]}" >> "${_authfile}"
     fi
   fi
 }
-
 
 function gitinit {
   local _envfile="${AUTOENV_ENV_FILENAME:-.env}"
@@ -120,9 +127,9 @@ function gitinit {
     echo "${_envfile}" >> .gitignore
   fi
 
-  # Add .virtualenv directory to .gitignore
-  if ! grep -q '^\.virtualenv$' .gitignore; then
-    echo '.virtualenv' >> .gitignore
+  # Add ${VENV} directory to .gitignore
+  if ! grep -q "^\${VENV}" .gitignore; then
+    echo "${VENV}" >> .gitignore
   fi
 
   # Add .idea (pycharm) directory to .gitignore
@@ -147,6 +154,7 @@ function gitinit {
 # Main
 PYTHON=${@: -1}
 PROJECT=$(basename "$PWD")
+_migrate=false
 _remove=false
 _update=false
 _skipgit=false
@@ -156,7 +164,7 @@ while getopts ":hvgardu" OPTION; do
     case $OPTION in
         h)  help
             exit 1;;
-        v)  echo 'pyinit 0.2.3'
+        v)  echo 'pyinit 0.3.0'
             exit 0;;
         g)  _skipgit=true;;
         a)  _skipautoenv=true;;
@@ -166,6 +174,13 @@ while getopts ":hvgardu" OPTION; do
         \?) exit 1;;
     esac
 done
+
+if [[ -d .virtualenv ]]; then
+    printf '\e[33mLegacy virtualenv folder detected\e[39m\n'
+    VENV='.virtualenv'
+else
+    VENV='.venv'
+fi
 
 printf '\e[96mpyinit:\e[39m\n'
 if [[ "${_remove}" == "true" ]]; then
@@ -235,6 +250,6 @@ fi
 if [[ ${_skipautoenv} == "false" ]]; then
   printf '\e[93muse "cd ." to enable the new virtualenv\e[39m\n'
 else
-  printf "\e[93muse \"source '.virtualenv/${PROJECT}/bin/activate'\" to enable the new virtualenv\e[39m\n"
+  printf "\e[93muse \"source '${VENV}/${PROJECT}/bin/activate'\" to enable the new virtualenv\e[39m\n"
 fi
 
