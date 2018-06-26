@@ -9,7 +9,7 @@ Adding autoenv to automaticly enable virtualenvs is a huge step to make virtuale
 
 Pyinit is a simple bash script to glue git, autoenv and virtualenv together.
 
-1. It will install a .virtualenv folder into you're project folder and add it to .gitignore.
+1. It will install a .venv folder into you're project folder and add it to .gitignore.
 2. Initialize a new git project.
 3. Install the project requirements mentioned in the requirement*.txt files. and configure autoenv so that the virtualenv will be activated if you enter the project directory.
 
@@ -23,8 +23,8 @@ pyinit:
 creating virtualenv
 Already using interpreter /usr/bin/python3
 Using base prefix '/usr'
-New python executable in /home/jb/git/new-python3-project/.virtualenv/new-python3-project/bin/python3
-Also creating executable in /home/jb/git/new-python3-project/.virtualenv/new-python3-project/bin/python
+New python executable in /home/jb/git/new-python3-project/.env/new-python3-project/bin/python3
+Also creating executable in /home/jb/git/new-python3-project/.venv/new-python3-project/bin/python
 Installing setuptools, pip, wheel...done.
 enable autoenv
 initializing git project
