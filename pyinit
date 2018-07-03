@@ -56,6 +56,7 @@ function python_virtualenv {
     printf '\e[92mcreating virtualenv\e[39m\n'
     virtualenv -p ${_python} "${VENV}/${_projectdir}"
     install_requirements
+    virtualenv -p ${_python} --relocatable "${VENV}/${_projectdir}"
   fi
 }
 
