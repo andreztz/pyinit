@@ -39,7 +39,6 @@ function install_requirements {
         pip install ${_requirement}
       done
     done
-    virtualenv -p ${_python} --relocatable "${VENV}/${_projectdir}"
   fi
 }
 
@@ -57,6 +56,7 @@ function python_virtualenv {
     printf '\e[92mcreating virtualenv\e[39m\n'
     virtualenv -p ${_python} "${VENV}/${_projectdir}"
     install_requirements
+    virtualenv -p ${_python} --relocatable "${VENV}/${_projectdir}"
   fi
 }
 
@@ -94,9 +94,18 @@ function remove_virtualenv {
 
 function update_virtualenv {
   local _projectdir=$1
+  local _python_version=$(env python -V 2>&1)
   printf '\e[92mupdating virtualenv\e[39m\n'
   source "${VENV}/${_projectdir}/bin/activate"
   install_requirements
+
+  if [[ $_python_version =~ ' 2.' ]]; then
+    virtualenv -p python2 --relocatable "${VENV}/${_projectdir}"
+  elif [[ $_python_version =~ ' 3.' ]]; then
+    virtualenv -p python3 --relocatable "${VENV}/${_projectdir}"
+  else
+    virtualenv --relocatable "${VENV}/${_projectdir}"
+  fi
 }
 
 function python_autoenv {
