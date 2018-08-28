@@ -32,6 +32,7 @@ EOF
 function install_requirements {
   if ls requirements*.txt > /dev/null 2>&1; then
     source "${VENV}/${_projectdir}/bin/activate"
+    pip install --upgrade setuptools
     for _requirement_file in requirements*.txt; do
       # respect ordering in requirement file
       for _requirement in $(cat "${_requirement_file}"|grep -v '^#'); do
@@ -174,7 +175,7 @@ while getopts ":hvgardu" OPTION; do
     case $OPTION in
         h)  help
             exit 1;;
-        v)  echo 'pyinit 0.3.0'
+        v)  echo 'pyinit 0.3.1'
             exit 0;;
         g)  _skipgit=true;;
         a)  _skipautoenv=true;;
